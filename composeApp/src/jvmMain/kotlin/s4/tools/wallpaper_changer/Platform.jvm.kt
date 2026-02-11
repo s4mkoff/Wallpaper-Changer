@@ -19,3 +19,6 @@ actual fun getFilesDirectory(): String {
     println("directory: $directory")
     return "$directory/"
 }
+
+actual fun cancelWorkManager() = Unit
+actual fun scheduleWorkManager() = Unit

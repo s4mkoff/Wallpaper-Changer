@@ -10,16 +10,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import s4.tools.wallpaper_changer.data.api.wallhaven.Ratios
 import s4.tools.wallpaper_changer.data.api.wallhaven.Sorting
 
 @Composable
 @Preview
-fun App(
-) {
+fun App() {
     val viewModel = remember { MainViewModel() }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         viewModel.loadApiParams()
     }
@@ -27,18 +30,17 @@ fun App(
         var isTokenError by remember {
             mutableStateOf(false)
         }
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .safeContentPadding()
                 .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            item {
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
+            LazyColumn(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
                     Column {
                         Text(
                             text = "Categories"
@@ -48,25 +50,36 @@ fun App(
                                 CheckBoxItem(
                                     label = "General",
                                     value = viewModel.api.categories.general,
-                                    onValueChange = { viewModel.api.categories = viewModel.api.categories.copy( general = !viewModel.api.categories.general) }
+                                    onValueChange = {
+                                        viewModel.api.categories =
+                                            viewModel.api.categories.copy(general = !viewModel.api.categories.general)
+                                    }
                                 )
                             }
                             item {
                                 CheckBoxItem(
                                     label = "Anime",
                                     value = viewModel.api.categories.anime,
-                                    onValueChange = { viewModel.api.categories = viewModel.api.categories.copy( anime = !viewModel.api.categories.anime) }
+                                    onValueChange = {
+                                        viewModel.api.categories =
+                                            viewModel.api.categories.copy(anime = !viewModel.api.categories.anime)
+                                    }
                                 )
                             }
                             item {
                                 CheckBoxItem(
                                     label = "People",
                                     value = viewModel.api.categories.people,
-                                    onValueChange = { viewModel.api.categories = viewModel.api.categories.copy( people = !viewModel.api.categories.people) }
+                                    onValueChange = {
+                                        viewModel.api.categories =
+                                            viewModel.api.categories.copy(people = !viewModel.api.categories.people)
+                                    }
                                 )
                             }
                         }
                     }
+                }
+                item {
                     Column {
                         Text(
                             text = "Purity"
@@ -76,14 +89,19 @@ fun App(
                                 CheckBoxItem(
                                     label = "SWF",
                                     value = viewModel.api.purity.sfw,
-                                    onValueChange = { viewModel.api.purity = viewModel.api.purity.copy( sfw = !viewModel.api.purity.sfw) }
+                                    onValueChange = {
+                                        viewModel.api.purity = viewModel.api.purity.copy(sfw = !viewModel.api.purity.sfw)
+                                    }
                                 )
                             }
                             item {
                                 CheckBoxItem(
                                     label = "Sketchy",
                                     value = viewModel.api.purity.sketchy,
-                                    onValueChange = { viewModel.api.purity = viewModel.api.purity.copy( sketchy = !viewModel.api.purity.sketchy) }
+                                    onValueChange = {
+                                        viewModel.api.purity =
+                                            viewModel.api.purity.copy(sketchy = !viewModel.api.purity.sketchy)
+                                    }
                                 )
                             }
                             item {
@@ -94,13 +112,16 @@ fun App(
                                         if (viewModel.api.token.isEmpty()) {
                                             isTokenError = true
                                         } else {
-                                            viewModel.api.purity = viewModel.api.purity.copy( nsfw = !viewModel.api.purity.nsfw)
+                                            viewModel.api.purity =
+                                                viewModel.api.purity.copy(nsfw = !viewModel.api.purity.nsfw)
                                         }
                                     }
                                 )
                             }
                         }
                     }
+                }
+                item {
                     Column {
                         Text(
                             text = "Resolution"
@@ -112,6 +133,8 @@ fun App(
                             }
                         )
                     }
+                }
+                item {
                     Column {
                         Text(
                             text = "Sorting"
@@ -126,6 +149,8 @@ fun App(
                             }
                         }
                     }
+                }
+                item {
                     Column {
                         Text(
                             text = "Ratios"
@@ -140,6 +165,8 @@ fun App(
                             }
                         }
                     }
+                }
+                item {
                     Column {
                         Text(
                             text = "Token"
@@ -153,10 +180,18 @@ fun App(
                             }
                         )
                     }
+                }
+                item {
                     Row {
                         Button(
                             onClick = {
-                                viewModel.changeWallpaper()
+                                viewModel.changeWallpaper(
+                                    showSnackbar = { message ->
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar(message)
+                                        }
+                                    }
+                                )
                             }
                         ) {
                             Text(
@@ -174,7 +209,36 @@ fun App(
                         }
                     }
                 }
+                if (getPlatform().name.contains("Android")) {
+                    item {
+                        Row {
+                            Button(
+                                onClick = {
+                                    scheduleWorkManager()
+                                }
+                            ) {
+                                Text(
+                                    text = "Schedule 15 min"
+                                )
+                            }
+                            Button(
+                                onClick = {
+                                    cancelWorkManager()
+                                }
+                            ) {
+                                Text(
+                                    text = "Cancel scheduling"
+                                )
+                            }
+                        }
+                    }
+                }
             }
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+            )
         }
     }
 }

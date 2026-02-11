@@ -1,18 +1,24 @@
 package s4.tools.wallpaper_changer.data
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.contentLength
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import s4.tools.wallpaper_changer.changeWallpaper
-import s4.tools.wallpaper_changer.getFilesDirectory
 import java.io.File
 
 class MainFun(
@@ -21,9 +27,11 @@ class MainFun(
 
     val myScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    var showSnackbar: ((String) -> Unit)? = null
 
-
-    operator fun invoke(link: String) = myScope.launch {
+    operator fun invoke(
+        link: String
+    ) = myScope.launch {
         val wallpapers = searchWallpapers(link)
         println("Server response:")
         wallpapers.forEach {
@@ -62,6 +70,7 @@ class MainFun(
         }
         downloadWallpaper(path, wallpaperName)
         changeWallpaper(workDir, wallpaperName)
+        showSnackbar?.invoke("Success")
     }
 
 
