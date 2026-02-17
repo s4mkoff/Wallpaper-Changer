@@ -51,15 +51,18 @@ class MainFun(
         }
         if (!FilesOperation.isTxtContainsText(workDir + FileNames.WALLPAPER_LIST, randomWallpaper.url)) {
             FilesOperation.appendToEndOfTxt(workDir + FileNames.WALLPAPER_LIST, randomWallpaper.url)
+            println("Wallpaper extension: ${randomWallpaper.fileType} + $wallpaperExtension")
             downloadAndChangeWallpaper(randomWallpaper.path, wallpaperExtension)
         } else if (count < 10){
             wallpaperChanger(count + 1, wallpapers)
         } else {
+            println("Wallpaper extension: ${randomWallpaper.fileType} + $wallpaperExtension")
             downloadAndChangeWallpaper(randomWallpaper.path, wallpaperExtension)
         }
     }
 
     private suspend fun downloadAndChangeWallpaper(path: String, extension: String) {
+        println("Choosed wallpaper url: $path")
         var wallpaperName = FileNames.WALLPAPER_FILE_NAME_WITHOUT_EXTENSION + ".$extension"
         val newWallpaperName = wallpaperName.replace(".$extension", "_1.$extension")
         if (FilesOperation.checkIsFileExist(wallpaperName)) {

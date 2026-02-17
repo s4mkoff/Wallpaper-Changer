@@ -12,8 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import io.ktor.http.ContentType
 import kotlinx.coroutines.launch
+import s4.tools.wallpaper_changer.data.MainFun
 import s4.tools.wallpaper_changer.data.api.wallhaven.Ratios
 import s4.tools.wallpaper_changer.data.api.wallhaven.Sorting
 
@@ -23,6 +27,7 @@ fun App() {
     val viewModel = remember { MainViewModel() }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
         viewModel.loadApiParams()
     }
@@ -37,6 +42,8 @@ fun App() {
                 .fillMaxSize(),
         ) {
             LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize(),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -121,6 +128,15 @@ fun App() {
                         }
                     }
                 }
+//                if (getPlatform().name.contains("Java", true)) {
+//                    item {
+//                        Column {
+//                            Text(
+//                                text = "Folder to download in"
+//                            )
+//                        }
+//                    }
+//                }
                 item {
                     Column {
                         Text(
@@ -166,6 +182,18 @@ fun App() {
                         }
                     }
                 }
+//                item {
+//                    Column {
+//                        Text(
+//                            text = "Color"
+//                        )
+//                        Box(
+//                            modifier = Modifier
+//                                .size(100.dp)
+//                                .background(if viewModel.api.color)
+//                        )
+//                    }
+//                }
                 item {
                     Column {
                         Text(
@@ -230,6 +258,38 @@ fun App() {
                                     text = "Cancel scheduling"
                                 )
                             }
+                        }
+                    }
+                    item {
+                        var workManagerStatus by remember {
+                            mutableStateOf("Loading status")
+                        }
+                        LaunchedEffect(
+                            Unit
+                        ) {
+                            observeWorkManagerState(
+                                lifecycleOwner = lifecycleOwner,
+                                observerStatus = { status -> workManagerStatus = status }
+                            )
+                        }
+                        Text(
+                            text = workManagerStatus
+                        )
+                    }
+                    item {
+                        Button(
+                            onClick = {
+                                    exportFilesInExternal { result ->
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar(result)
+                                        }
+                                    }
+
+                            }
+                        ) {
+                            Text(
+                                text = "Експортувати"
+                            )
                         }
                     }
                 }

@@ -15,6 +15,8 @@ class WallhavenApi: GeneralApi {
     var ratios: Ratios by mutableStateOf(Ratios.Landscape)
 
     var token by mutableStateOf("")
+
+    var color by mutableStateOf("")
     
 
     override fun buildLink(): String {
@@ -24,6 +26,8 @@ class WallhavenApi: GeneralApi {
             append("atleast", resolution)
             append("sorting", sorting.value)
             append("ratios", ratios.value)
+//            append("colors", "660000")
+            if (color.isNotEmpty()) append("color", color)
             if (token.isNotEmpty()) append("apikey", token)
         }.build()
     }

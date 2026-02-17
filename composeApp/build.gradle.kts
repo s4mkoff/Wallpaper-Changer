@@ -89,9 +89,12 @@ compose.desktop {
         mainClass = "s4.tools.wallpaper_changer.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "s4.tools.wallpaper_changer"
-            packageVersion = "1.0.0"
+            targetFormats(TargetFormat.AppImage)
+            modules("java.net.http", "jdk.crypto.ec")
+//            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+//            packageName = "s4.tools.wallpaper_changer"
+//            packageVersion = "1.0.0"
+//            linux{ }
         }
     }
 }
