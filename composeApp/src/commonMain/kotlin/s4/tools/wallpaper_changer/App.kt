@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
@@ -182,18 +183,30 @@ fun App() {
                         }
                     }
                 }
-//                item {
-//                    Column {
-//                        Text(
-//                            text = "Color"
-//                        )
-//                        Box(
-//                            modifier = Modifier
-//                                .size(100.dp)
-//                                .background(if viewModel.api.color)
-//                        )
-//                    }
-//                }
+                item {
+                    Column {
+                        Text(
+                            text = "Color"
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(100.dp)
+                                .background(viewModel.boxColor ?: Color.Transparent)
+                            )
+                            TextField(
+                                value = viewModel.api.color,
+                                isError = viewModel.boxColor==null&&viewModel.api.color.isEmpty(),
+                                onValueChange = { color ->
+                                    viewModel.api.color = color
+                                    viewModel.toComposeColor()
+                                }
+                            )
+                        }
+                    }
+                }
                 item {
                     Column {
                         Text(

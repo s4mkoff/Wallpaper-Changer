@@ -1,19 +1,19 @@
 package s4.tools.wallpaper_changer
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
-import kotlinx.serialization.json.Json
-import s4.tools.wallpaper_changer.data.FileNames
-import s4.tools.wallpaper_changer.data.FilesOperation
 import s4.tools.wallpaper_changer.data.MainFun
-import s4.tools.wallpaper_changer.data.api.GeneralApi
 import s4.tools.wallpaper_changer.data.api.wallhaven.WallhavenApi
-import s4.tools.wallpaper_changer.data.api.wallhaven.WallhavenSettings
 import s4.tools.wallpaper_changer.data.storage.WallpaperStorage
-import java.io.File
 
 class MainViewModel: ViewModel() {
 
     val workDir = getFilesDirectory()
+
+    var boxColor: Color? by mutableStateOf(null)
     fun changeWallpaper(
         showSnackbar: (String) -> Unit
     ) {
@@ -29,6 +29,20 @@ class MainViewModel: ViewModel() {
             workDir,
             api.toSettings()
         )
+    }
+
+    fun toComposeColor() {
+        try {
+            val hex = api.color.removePrefix("#")
+            val value = when (hex.length) {
+                6 -> ("FF" + hex).toLong(16) // додаємо alpha
+                8 -> hex.toLong(16)
+                else -> error("Invalid color: $this")
+            }
+            boxColor = Color(value)
+        } catch (_: Exception) {
+            boxColor = null
+        }
     }
 
     fun loadApiParams() {

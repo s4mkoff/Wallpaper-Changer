@@ -26,8 +26,7 @@ class WallhavenApi: GeneralApi {
             append("atleast", resolution)
             append("sorting", sorting.value)
             append("ratios", ratios.value)
-//            append("colors", "660000")
-            if (color.isNotEmpty()) append("color", color)
+            if (color.isNotEmpty()) append("colors", color)
             if (token.isNotEmpty()) append("apikey", token)
         }.build()
     }
@@ -39,7 +38,8 @@ class WallhavenApi: GeneralApi {
             resolution = resolution,
             sorting = sorting,
             ratios = ratios,
-            token = token
+            token = token,
+            color = color
         )
     }
 
@@ -50,6 +50,7 @@ class WallhavenApi: GeneralApi {
         sorting = settings.sorting
         ratios = settings.ratios
         token = settings.token
+        color = settings.color
     }
 
 

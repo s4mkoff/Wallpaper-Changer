@@ -9,5 +9,6 @@ data class WallhavenSettings(
     val resolution: String = "3440x1440",
     val sorting: Sorting = Sorting.Toplist,
     val ratios: Ratios = Ratios.Landscape,
-    val token: String = ""
+    val token: String = "",
+    val color: String = ""
 )
