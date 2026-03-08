@@ -3,13 +3,22 @@ package s4.tools.wallpaper_changer
 import android.app.WallpaperManager
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.provider.MediaStore
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.LifecycleOwner
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import s4.tools.wallpaper_changer.data.local.os.FilesManagerAndroid
+import s4.tools.wallpaper_changer.data.local.os.WallpaperChangerAndroid
+import s4.tools.wallpaper_changer.domain.local.os.FilesManager
+import s4.tools.wallpaper_changer.domain.local.os.WallpaperChanger
+import s4.tools.wallpaper_changer.domain.local.storage.StorageManager
+import s4.tools.wallpaper_changer.domain.remote.WallpaperNetwork
 import s4.tools.wallpaper_changer.worker.WallpaperWorker
 import java.io.File
 import java.io.FileInputStream
@@ -24,19 +33,6 @@ object AppContext {
 }
 
 actual fun getPlatform(): Platform = AndroidPlatform()
-
-actual fun changeWallpaper(dir: String, wallpaperName: String) {
-    val file = File(dir + wallpaperName)
-    val context = AppContext.appContext
-    val wallpaperManager = WallpaperManager.getInstance(context)
-    wallpaperManager.setStream(file.inputStream())
-}
-
-actual fun getFilesDirectory(): String {
-    val directory = AppContext.appContext.filesDir.absolutePath
-    println("directory: $directory")
-    return "$directory/"
-}
 
 actual fun cancelWorkManager() {
     try {
@@ -161,3 +157,27 @@ actual fun exportFilesInExternal(callback: (String) -> Unit) {
             else -> "application/octet-stream"
         }
     }
+
+actual fun File.toBitmap(): ImageBitmap? {
+    val bitmapOptions = BitmapFactory.Options().also {
+        it.inSampleSize = 4
+    }
+    val bitmap = BitmapFactory.decodeStream(this.inputStream(), null, bitmapOptions) ?: return null
+    return bitmap.asImageBitmap()
+}
+
+actual fun getFilesManager(): FilesManager {
+    return FilesManagerAndroid()
+}
+
+actual fun getStorageManager(): StorageManager {
+    TODO("Not yet implemented")
+}
+
+actual fun getWallpaperChanger(): WallpaperChanger {
+    return WallpaperChangerAndroid()
+}
+
+actual fun getWallpaperNetwork(): WallpaperNetwork {
+    TODO("Not yet implemented")
+}

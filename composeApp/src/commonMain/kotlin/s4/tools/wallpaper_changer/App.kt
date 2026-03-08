@@ -1,334 +1,146 @@
 package s4.tools.wallpaper_changer
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import io.ktor.http.ContentType
-import kotlinx.coroutines.launch
-import s4.tools.wallpaper_changer.data.MainFun
-import s4.tools.wallpaper_changer.data.api.wallhaven.Ratios
-import s4.tools.wallpaper_changer.data.api.wallhaven.Sorting
+import org.jetbrains.compose.resources.painterResource
+import s4.tools.wallpaper_changer.data.local.AppManagers
+import s4.tools.wallpaper_changer.domain.models.AppSettings
+import s4.tools.wallpaper_changer.data.remote.api.WallhavenApi
+import s4.tools.wallpaper_changer.navigation.Screens
+import s4.tools.wallpaper_changer.presentation.screens.wallpaperList.WallpaperList
+import s4.tools.wallpaper_changer.presentation.screens.apiSettings.wallhaven.WallhavenApiSettings
+import s4.tools.wallpaper_changer.presentation.screens.home.HomeScreen
+import s4.tools.wallpaper_changer.presentation.screens.settings.Settings
+import s4.tools.wallpaper_changer.presentation.theme.Theme
+import wallpaper_changer.composeapp.generated.resources.Res
+import wallpaper_changer.composeapp.generated.resources.home_icon
+import wallpaper_changer.composeapp.generated.resources.settings_icon
+
+private fun chooseTheme(dark: Boolean): ColorScheme {
+    return if (dark) darkColorScheme() else lightColorScheme()
+}
 
 @Composable
 @Preview
 fun App() {
     val viewModel = remember { MainViewModel() }
     val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
-    val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(Unit) {
-        viewModel.loadApiParams()
+    LaunchedEffect(viewModel.snackbarMessage) {
+        if (!viewModel.snackbarMessage.value.isEmpty()) snackbarHostState.showSnackbar(viewModel.snackbarMessage.value)
     }
-    MaterialTheme {
-        var isTokenError by remember {
-            mutableStateOf(false)
-        }
-        Box(
+    val appSettings by viewModel.appSettings.collectAsState()
+    val systemDarkTheme = isSystemInDarkTheme()
+    MaterialTheme(
+        colorScheme = if (appSettings.theme==Theme.SYSTEM) chooseTheme(systemDarkTheme) else chooseTheme(appSettings.theme==Theme.DARK)
+    ) {
+        Scaffold(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
                 .fillMaxSize(),
-        ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                item {
-                    Column {
-                        Text(
-                            text = "Categories"
-                        )
-                        LazyRow {
-                            item {
-                                CheckBoxItem(
-                                    label = "General",
-                                    value = viewModel.api.categories.general,
-                                    onValueChange = {
-                                        viewModel.api.categories =
-                                            viewModel.api.categories.copy(general = !viewModel.api.categories.general)
-                                    }
+            bottomBar = {
+                NavigationBar(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    content = {
+                        NavigationBarItem(
+                            selected = viewModel.currentScreen == Screens.Home,
+                            icon = {
+                                Icon(
+                                    painter = painterResource(Res.drawable.home_icon),
+                                    contentDescription = "Home icon"
                                 )
-                            }
-                            item {
-                                CheckBoxItem(
-                                    label = "Anime",
-                                    value = viewModel.api.categories.anime,
-                                    onValueChange = {
-                                        viewModel.api.categories =
-                                            viewModel.api.categories.copy(anime = !viewModel.api.categories.anime)
-                                    }
-                                )
-                            }
-                            item {
-                                CheckBoxItem(
-                                    label = "People",
-                                    value = viewModel.api.categories.people,
-                                    onValueChange = {
-                                        viewModel.api.categories =
-                                            viewModel.api.categories.copy(people = !viewModel.api.categories.people)
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-                item {
-                    Column {
-                        Text(
-                            text = "Purity"
-                        )
-                        LazyRow {
-                            item {
-                                CheckBoxItem(
-                                    label = "SWF",
-                                    value = viewModel.api.purity.sfw,
-                                    onValueChange = {
-                                        viewModel.api.purity = viewModel.api.purity.copy(sfw = !viewModel.api.purity.sfw)
-                                    }
-                                )
-                            }
-                            item {
-                                CheckBoxItem(
-                                    label = "Sketchy",
-                                    value = viewModel.api.purity.sketchy,
-                                    onValueChange = {
-                                        viewModel.api.purity =
-                                            viewModel.api.purity.copy(sketchy = !viewModel.api.purity.sketchy)
-                                    }
-                                )
-                            }
-                            item {
-                                CheckBoxItem(
-                                    label = "NSFW",
-                                    value = viewModel.api.purity.nsfw,
-                                    onValueChange = {
-                                        if (viewModel.api.token.isEmpty()) {
-                                            isTokenError = true
-                                        } else {
-                                            viewModel.api.purity =
-                                                viewModel.api.purity.copy(nsfw = !viewModel.api.purity.nsfw)
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-//                if (getPlatform().name.contains("Java", true)) {
-//                    item {
-//                        Column {
-//                            Text(
-//                                text = "Folder to download in"
-//                            )
-//                        }
-//                    }
-//                }
-                item {
-                    Column {
-                        Text(
-                            text = "Resolution"
-                        )
-                        TextField(
-                            value = viewModel.api.resolution,
-                            onValueChange = { resolution ->
-                                viewModel.api.resolution = resolution
-                            }
-                        )
-                    }
-                }
-                item {
-                    Column {
-                        Text(
-                            text = "Sorting"
-                        )
-                        LazyRow {
-                            items(Sorting.entries) { item ->
-                                CheckBoxItem(
-                                    label = item.name,
-                                    value = item == viewModel.api.sorting,
-                                    onValueChange = { viewModel.api.sorting = item }
-                                )
-                            }
-                        }
-                    }
-                }
-                item {
-                    Column {
-                        Text(
-                            text = "Ratios"
-                        )
-                        LazyRow {
-                            items(Ratios.entries) { item ->
-                                CheckBoxItem(
-                                    label = item.value,
-                                    value = item == viewModel.api.ratios,
-                                    onValueChange = { viewModel.api.ratios = item }
-                                )
-                            }
-                        }
-                    }
-                }
-                item {
-                    Column {
-                        Text(
-                            text = "Color"
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(100.dp)
-                                .background(viewModel.boxColor ?: Color.Transparent)
-                            )
-                            TextField(
-                                value = viewModel.api.color,
-                                isError = viewModel.boxColor==null&&viewModel.api.color.isEmpty(),
-                                onValueChange = { color ->
-                                    viewModel.api.color = color
-                                    viewModel.toComposeColor()
-                                }
-                            )
-                        }
-                    }
-                }
-                item {
-                    Column {
-                        Text(
-                            text = "Token"
-                        )
-                        TextField(
-                            value = viewModel.api.token,
-                            isError = isTokenError,
-                            onValueChange = { token ->
-                                isTokenError = false
-                                viewModel.api.token = token
-                            }
-                        )
-                    }
-                }
-                item {
-                    Row {
-                        Button(
-                            onClick = {
-                                viewModel.changeWallpaper(
-                                    showSnackbar = { message ->
-                                        coroutineScope.launch {
-                                            snackbarHostState.showSnackbar(message)
-                                        }
-                                    }
-                                )
-                            }
-                        ) {
-                            Text(
-                                text = "Change wallpaper"
-                            )
-                        }
-                        Button(
-                            onClick = {
-                                viewModel.saveApiParams()
-                            }
-                        ) {
-                            Text(
-                                text = "Save params"
-                            )
-                        }
-                    }
-                }
-                if (getPlatform().name.contains("Android")) {
-                    item {
-                        Row {
-                            Button(
-                                onClick = {
-                                    scheduleWorkManager()
-                                }
-                            ) {
+                            },
+                            label = {
                                 Text(
-                                    text = "Schedule 15 min"
+                                    text = "Home"
                                 )
+                            },
+                            onClick = {
+                                viewModel.currentScreen = Screens.Home
                             }
-                            Button(
-                                onClick = {
-                                    cancelWorkManager()
-                                }
-                            ) {
+                        )
+                        NavigationBarItem(
+                            selected = viewModel.currentScreen == Screens.Settings,
+                            icon = {
+                                Icon(
+                                    painter = painterResource(Res.drawable.settings_icon),
+                                    contentDescription = "Settings icon"
+                                )
+                            },
+                            label = {
                                 Text(
-                                    text = "Cancel scheduling"
+                                    text = "Settings"
                                 )
+                            },
+                            onClick = {
+                                viewModel.currentScreen = Screens.Settings
                             }
-                        }
-                    }
-                    item {
-                        var workManagerStatus by remember {
-                            mutableStateOf("Loading status")
-                        }
-                        LaunchedEffect(
-                            Unit
-                        ) {
-                            observeWorkManagerState(
-                                lifecycleOwner = lifecycleOwner,
-                                observerStatus = { status -> workManagerStatus = status }
-                            )
-                        }
-                        Text(
-                            text = workManagerStatus
                         )
                     }
-                    item {
-                        Button(
-                            onClick = {
-                                    exportFilesInExternal { result ->
-                                        coroutineScope.launch {
-                                            snackbarHostState.showSnackbar(result)
-                                        }
-                                    }
-
-                            }
-                        ) {
-                            Text(
-                                text = "Експортувати"
-                            )
-                        }
-                    }
-                }
+                )
             }
-            SnackbarHost(
-                hostState = snackbarHostState,
+        ) { innerPadding ->
+            Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-            )
-        }
-    }
-}
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                when (viewModel.currentScreen) {
+                    Screens.Home -> {
+                        val currentWallpaperState by viewModel.currentWallpaperImage.collectAsState()
+                        HomeScreen(
+                            currentApi = viewModel.currentApi.apiName,
+                            currentWallpaperImage = currentWallpaperState,
+                            action = { action ->
+                                viewModel.homeAction(action)
+                            }
+                        )
+                    }
 
-@Composable
-fun CheckBoxItem(
-    label: String,
-    value: Boolean,
-    onValueChange: () -> Unit
-) {
-    Column {
-        Text(
-            text = label
-        )
-        Checkbox(
-            checked = value,
-            onCheckedChange = { onValueChange() }
-        )
+                    Screens.ApiSettings -> {
+                        when (viewModel.currentApi) {
+                            is WallhavenApi -> {
+                                val settingsState by (viewModel.currentApi as WallhavenApi).settings.collectAsState()
+                                WallhavenApiSettings(
+                                    state = settingsState,
+                                    action = { action ->
+                                        viewModel.wallhavenSettingsAction(action)
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Screens.WallpaperList -> {
+                        val wallpaperList by viewModel.listOfWallpapers.collectAsState()
+                        WallpaperList(
+                            wallpapers = wallpaperList,
+                            onWallpaperClick = { wallpaperResponse ->
+                                viewModel.wallpaperFromListClick(wallpaperResponse)
+                            }
+                        )
+                    }
+
+                    Screens.Settings -> {
+                        val settingsState by viewModel.appSettings.collectAsState()
+                        Settings(
+                            state = settingsState,
+                            action = { action ->
+                                viewModel.settingsAction(action)
+                            }
+                        )
+                    }
+                }
+                SnackbarHost(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter),
+                    hostState = snackbarHostState
+                )
+            }
+        }
     }
 }

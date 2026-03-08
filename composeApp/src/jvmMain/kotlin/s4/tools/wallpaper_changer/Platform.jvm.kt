@@ -1,6 +1,15 @@
 package s4.tools.wallpaper_changer
 
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.lifecycle.LifecycleOwner
+import org.jetbrains.skia.Image
+import s4.tools.wallpaper_changer.domain.local.os.FilesManager
+import s4.tools.wallpaper_changer.data.local.os.FilesManagerDesktop
+import s4.tools.wallpaper_changer.data.local.os.WallpaperChangerImpl
+import s4.tools.wallpaper_changer.domain.local.os.WallpaperChanger
+import s4.tools.wallpaper_changer.domain.local.storage.StorageManager
+import s4.tools.wallpaper_changer.domain.remote.WallpaperNetwork
 import java.io.File
 
 class JVMPlatform : Platform {
@@ -8,29 +17,6 @@ class JVMPlatform : Platform {
 }
 
 actual fun getPlatform(): Platform = JVMPlatform()
-
-actual fun changeWallpaper(dir: String, wallpaperName: String) {
-    val file = File(dir + wallpaperName)
-    println("yeah eyah yeah: ${file.absolutePath}")
-    val process = ProcessBuilder(
-        "hyprctl",
-        "hyprpaper",
-        "wallpaper",
-        ",${file.absolutePath},"
-    )
-        .redirectErrorStream(true)
-        .start()
-    println(process.inputStream.bufferedReader().readText())
-    process.waitFor()
-}
-
-actual fun getFilesDirectory(): String {
-    val userDirectory = System.getenv("HOME")
-    val directory = File(userDirectory, ".wallpaperChanger")
-    if (!directory.exists()) directory.mkdir()
-    println("directory: $directory")
-    return "$directory/"
-}
 
 actual fun cancelWorkManager() = Unit
 actual fun scheduleWorkManager() = Unit
@@ -40,3 +26,28 @@ actual fun observeWorkManagerState(
 ) = Unit
 
 actual fun exportFilesInExternal(callback: (String) -> Unit) = Unit
+
+actual fun getFilesManager(): FilesManager {
+    return FilesManagerDesktop()
+}
+
+actual fun getStorageManager(): StorageManager {
+    TODO("Not yet implemented")
+}
+
+actual fun File.toBitmap(): ImageBitmap? {
+    val bytes = this.readBytes()
+    return Image.makeFromEncoded(bytes).toComposeImageBitmap()
+}
+
+//actual fun getResourceDelegation(): ResourceDelegation {
+//    TODO("Not yet implemented")
+//}
+
+actual fun getWallpaperChanger(): WallpaperChanger {
+    return WallpaperChangerImpl()
+}
+
+actual fun getWallpaperNetwork(): WallpaperNetwork {
+    TODO("Not yet implemented")
+}

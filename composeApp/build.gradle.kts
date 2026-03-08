@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.androidLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -16,6 +17,10 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
+
+//    androidLibrary {
+//        androidResources.enable = true
+//    }
 
     jvm()
 
@@ -41,6 +46,11 @@ kotlin {
             implementation("io.ktor:ktor-client-core:$ktor_version")
             implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
             implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+            //koil
+            implementation("io.coil-kt.coil3:coil-compose:3.4.0")
+            implementation("io.coil-kt.coil3:coil-network-okhttp:3.4.0")
+//            //navigation
+//            implementation("androidx.navigation:navigation-compose:2.9.7")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
