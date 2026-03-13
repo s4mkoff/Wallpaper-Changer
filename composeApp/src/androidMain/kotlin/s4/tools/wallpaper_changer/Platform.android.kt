@@ -6,6 +6,8 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.provider.MediaStore
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.LifecycleOwner
@@ -30,6 +32,7 @@ class AndroidPlatform : Platform {
 
 object AppContext {
     lateinit var appContext: Context
+    lateinit var finish: () -> Unit
 }
 
 actual fun getPlatform(): Platform = AndroidPlatform()
@@ -180,4 +183,13 @@ actual fun getWallpaperChanger(): WallpaperChanger {
 
 actual fun getWallpaperNetwork(): WallpaperNetwork {
     TODO("Not yet implemented")
+}
+
+@Composable
+actual fun BackHandling(callback: (finish: () -> Unit) -> Unit) {
+    BackHandler {
+        callback {
+            AppContext.finish()
+        }
+    }
 }

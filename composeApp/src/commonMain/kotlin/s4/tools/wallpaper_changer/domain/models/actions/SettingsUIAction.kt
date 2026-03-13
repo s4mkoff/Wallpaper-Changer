@@ -6,5 +6,6 @@ sealed class SettingsUIAction {
 
     class ClearWallpapers: SettingsUIAction()
     class ChangeNightMode(val theme: Theme): SettingsUIAction()
+    class ToggleSingleWallpaper: SettingsUIAction()
 
 }

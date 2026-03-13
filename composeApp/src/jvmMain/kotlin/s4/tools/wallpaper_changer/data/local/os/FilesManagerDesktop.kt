@@ -28,6 +28,8 @@ class FilesManagerDesktop: FilesManager {
     override fun createWallpaperFile(name: String, extension: String): File {
         val wallpaperDirectory = File(directory, WALLPAPER_FOLDER_NAME)
         if (!wallpaperDirectory.exists()) wallpaperDirectory.mkdir()
+        val savedFile = File(wallpaperDirectory, name)
+        if (savedFile.exists()) return savedFile
         return File(wallpaperDirectory, "$name.$extension")
     }
 

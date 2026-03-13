@@ -14,10 +14,12 @@ import s4.tools.wallpaper_changer.data.remote.api.WallhavenApi
 import s4.tools.wallpaper_changer.navigation.Screens
 import s4.tools.wallpaper_changer.presentation.screens.wallpaperList.WallpaperList
 import s4.tools.wallpaper_changer.presentation.screens.apiSettings.wallhaven.WallhavenApiSettings
+import s4.tools.wallpaper_changer.presentation.screens.history.History
 import s4.tools.wallpaper_changer.presentation.screens.home.HomeScreen
 import s4.tools.wallpaper_changer.presentation.screens.settings.Settings
 import s4.tools.wallpaper_changer.presentation.theme.Theme
 import wallpaper_changer.composeapp.generated.resources.Res
+import wallpaper_changer.composeapp.generated.resources.history_icon
 import wallpaper_changer.composeapp.generated.resources.home_icon
 import wallpaper_changer.composeapp.generated.resources.settings_icon
 
@@ -35,6 +37,13 @@ fun App() {
     }
     val appSettings by viewModel.appSettings.collectAsState()
     val systemDarkTheme = isSystemInDarkTheme()
+    BackHandling { finish ->
+        if (viewModel.currentScreen==Screens.Home) {
+            finish()
+        } else {
+            viewModel.currentScreen = Screens.Home
+        }
+    }
     MaterialTheme(
         colorScheme = if (appSettings.theme==Theme.SYSTEM) chooseTheme(systemDarkTheme) else chooseTheme(appSettings.theme==Theme.DARK)
     ) {
@@ -42,46 +51,71 @@ fun App() {
             modifier = Modifier
                 .fillMaxSize(),
             bottomBar = {
-                NavigationBar(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    content = {
-                        NavigationBarItem(
-                            selected = viewModel.currentScreen == Screens.Home,
-                            icon = {
-                                Icon(
-                                    painter = painterResource(Res.drawable.home_icon),
-                                    contentDescription = "Home icon"
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = "Home"
-                                )
-                            },
-                            onClick = {
-                                viewModel.currentScreen = Screens.Home
-                            }
-                        )
-                        NavigationBarItem(
-                            selected = viewModel.currentScreen == Screens.Settings,
-                            icon = {
-                                Icon(
-                                    painter = painterResource(Res.drawable.settings_icon),
-                                    contentDescription = "Settings icon"
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = "Settings"
-                                )
-                            },
-                            onClick = {
-                                viewModel.currentScreen = Screens.Settings
-                            }
+                Column {
+                    if (viewModel.loadingState) {
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
                         )
                     }
-                )
+                    NavigationBar(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        content = {
+                            NavigationBarItem(
+                                selected = viewModel.currentScreen == Screens.History,
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(Res.drawable.history_icon),
+                                        contentDescription = "History icon"
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text = "History"
+                                    )
+                                },
+                                onClick = {
+                                    viewModel.currentScreen = Screens.History
+                                }
+                            )
+                            NavigationBarItem(
+                                selected = viewModel.currentScreen == Screens.Home,
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(Res.drawable.home_icon),
+                                        contentDescription = "Home icon"
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text = "Home"
+                                    )
+                                },
+                                onClick = {
+                                    viewModel.currentScreen = Screens.Home
+                                }
+                            )
+                            NavigationBarItem(
+                                selected = viewModel.currentScreen == Screens.Settings,
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(Res.drawable.settings_icon),
+                                        contentDescription = "Settings icon"
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text = "Settings"
+                                    )
+                                },
+                                onClick = {
+                                    viewModel.currentScreen = Screens.Settings
+                                }
+                            )
+                        }
+                    )
+                }
             }
         ) { innerPadding ->
             Box(
@@ -131,6 +165,19 @@ fun App() {
                             state = settingsState,
                             action = { action ->
                                 viewModel.settingsAction(action)
+                            }
+                        )
+                    }
+
+                    Screens.History -> {
+                        LaunchedEffect(Unit) {
+                            viewModel.loadHistoryWallpapers()
+                        }
+                        val wallpapersList by viewModel.historyWallpaperList.collectAsState()
+                        History(
+                            wallpapersFromHistory = wallpapersList,
+                            action = { action ->
+                                viewModel.historyAction(action)
                             }
                         )
                     }

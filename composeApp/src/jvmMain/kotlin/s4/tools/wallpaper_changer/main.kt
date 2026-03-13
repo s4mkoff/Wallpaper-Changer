@@ -7,9 +7,11 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.runBlocking
-import s4.tools.wallpaper_changer.data.remote.api.WallhavenApi
+import kotlinx.serialization.json.Json
 import s4.tools.wallpaper_changer.data.local.AppManagers
-import s4.tools.wallpaper_changer.domain.usecase.WallpaperApiUseCases
+import s4.tools.wallpaper_changer.data.remote.api.WallhavenApi
+import s4.tools.wallpaper_changer.domain.models.AppSettings
+import s4.tools.wallpaper_changer.domain.usecase.WallpaperUseCases
 
 const val SERVICE_ELEMENT = "-service"
 
@@ -18,10 +20,14 @@ fun main(
 ) {
     if (args.contains(SERVICE_ELEMENT)) {
         runBlocking {
-            val useCases = WallpaperApiUseCases(
+            val useCases = WallpaperUseCases(
                 api = WallhavenApi(),
             )
-            useCases.randomWallpaper()
+            val json = Json { prettyPrint = true }
+            val appSettings = AppManagers.storageManager.loadAppSettings()?.let {
+                json.decodeFromString<AppSettings>(it)
+            } ?: AppSettings()
+            useCases.randomWallpaper(appSettings.singleWallpaper)
         }
     } else {
         application {

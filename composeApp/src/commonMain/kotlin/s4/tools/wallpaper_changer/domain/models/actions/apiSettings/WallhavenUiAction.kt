@@ -7,7 +7,6 @@ sealed class WallhavenUiAction {
     class ChangeSetting(val newSettings: WallhavenSettings): WallhavenUiAction()
     class SaveSettings: WallhavenUiAction()
     class TokenError: WallhavenUiAction()
-    class ChangeWallpaper: WallhavenUiAction()
     class Back: WallhavenUiAction()
 
 }

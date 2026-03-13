@@ -16,12 +16,14 @@ import s4.tools.wallpaper_changer.data.remote.api.WallhavenApi
 import s4.tools.wallpaper_changer.data.local.AppManagers
 import s4.tools.wallpaper_changer.domain.models.AppSettings
 import s4.tools.wallpaper_changer.domain.models.CurrentWallpaperImage
+import s4.tools.wallpaper_changer.domain.models.actions.HistoryUIAction
 import s4.tools.wallpaper_changer.domain.models.actions.HomeUIAction
 import s4.tools.wallpaper_changer.domain.models.actions.SettingsUIAction
 import s4.tools.wallpaper_changer.domain.models.actions.apiSettings.WallhavenUiAction
+import s4.tools.wallpaper_changer.domain.models.wallpaper.Wallpaper
 import s4.tools.wallpaper_changer.domain.remote.WallpaperApi
 import s4.tools.wallpaper_changer.domain.remote.WallpaperResponse
-import s4.tools.wallpaper_changer.domain.usecase.WallpaperApiUseCases
+import s4.tools.wallpaper_changer.domain.usecase.WallpaperUseCases
 import s4.tools.wallpaper_changer.navigation.Screens
 
 class MainViewModel : ViewModel() {
@@ -32,14 +34,22 @@ class MainViewModel : ViewModel() {
     var currentWallpaperImage: MutableStateFlow<CurrentWallpaperImage> =
         MutableStateFlow(CurrentWallpaperImage.Loading())
 
+    var loadingState by mutableStateOf(false)
+
+    private var _listOfWallpapers: MutableStateFlow<List<WallpaperResponse>?> = MutableStateFlow(null)
+    val listOfWallpapers: StateFlow<List<WallpaperResponse>?> = _listOfWallpapers.asStateFlow()
+
     private var _appSettings: MutableStateFlow<AppSettings> = MutableStateFlow(AppSettings())
     val appSettings: StateFlow<AppSettings> = _appSettings.asStateFlow()
 
     var currentScreen: Screens by mutableStateOf(Screens.Home)
 
+    private var _historyWallpaperList: MutableStateFlow<List<Wallpaper>> = MutableStateFlow(emptyList())
+    val historyWallpaperList: StateFlow<List<Wallpaper>> = _historyWallpaperList.asStateFlow()
+
     var currentApi: WallpaperApi = WallhavenApi()
 
-    val useCase = WallpaperApiUseCases(currentApi)
+    val useCase = WallpaperUseCases(currentApi)
 
     init {
         loadCurrentWallpaperImage()
@@ -59,6 +69,12 @@ class MainViewModel : ViewModel() {
         AppManagers.storageManager.saveSettings(settings)
     }
 
+    fun loadHistoryWallpapers() {
+        viewModelScope.launch {
+            _historyWallpaperList.update { useCase.loadWallpapersHistory() }
+        }
+    }
+
     fun loadCurrentWallpaperImage() {
         viewModelScope.launch {
             currentWallpaperImage.update {
@@ -66,9 +82,6 @@ class MainViewModel : ViewModel() {
             }
         }
     }
-
-    private var _listOfWallpapers: MutableStateFlow<List<WallpaperResponse>?> = MutableStateFlow(null)
-    val listOfWallpapers: StateFlow<List<WallpaperResponse>?> = _listOfWallpapers.asStateFlow()
 
     fun settingsAction(
         action: SettingsUIAction
@@ -84,6 +97,12 @@ class MainViewModel : ViewModel() {
                     _snackbarMessage.update { "Cleared" }
                 }
             }
+            is SettingsUIAction.ToggleSingleWallpaper -> {
+                viewModelScope.launch {
+                    _appSettings.update { it.copy(singleWallpaper = !it.singleWallpaper) }
+                    saveSettings()
+                }
+            }
         }
     }
 
@@ -94,15 +113,6 @@ class MainViewModel : ViewModel() {
             is WallhavenUiAction.ChangeSetting -> {
                 viewModelScope.launch {
                     (currentApi as WallhavenApi).changeSettings(action.newSettings)
-                }
-            }
-
-            is WallhavenUiAction.ChangeWallpaper -> {
-                viewModelScope.launch {
-                    currentWallpaperImage.update { CurrentWallpaperImage.Loading() }
-                    useCase.randomWallpaper()
-                    _snackbarMessage.update { "Finished" }
-                    loadCurrentWallpaperImage()
                 }
             }
 
@@ -126,11 +136,13 @@ class MainViewModel : ViewModel() {
 
     fun wallpaperFromListClick(wallpaperResponse: WallpaperResponse) {
         viewModelScope.launch {
+            loadingState = true
             currentWallpaperImage.update { CurrentWallpaperImage.Loading() }
-            useCase.changeWallpaperFromApi(wallpaperResponse)
+            useCase.changeWallpaperFromApi(wallpaperResponse, appSettings.value.singleWallpaper)
             _snackbarMessage.update { "Finished" }
             loadCurrentWallpaperImage()
             currentScreen = Screens.Home
+            loadingState = false
         }
     }
 
@@ -146,7 +158,7 @@ class MainViewModel : ViewModel() {
             is HomeUIAction.RandomWallpaper -> {
                 viewModelScope.launch(Dispatchers.IO) {
                     currentWallpaperImage.update { CurrentWallpaperImage.Loading() }
-                    useCase.randomWallpaper()
+                    useCase.randomWallpaper(appSettings.value.singleWallpaper)
                     _snackbarMessage.update { "Finished" }
                     loadCurrentWallpaperImage()
                 }
@@ -155,6 +167,17 @@ class MainViewModel : ViewModel() {
             is HomeUIAction.ToApiSettings -> {
                 currentScreen = Screens.ApiSettings
             }
+        }
+    }
+
+    fun historyAction(action: HistoryUIAction) {
+        when (action) {
+            is HistoryUIAction.ChangeSelectedWallpaper -> {
+                viewModelScope.launch {
+                    useCase.changeWallpaperFromStorage(action.wallpaper)
+                }
+            }
+            is HistoryUIAction.RemoveSelectedWallpaper -> TODO()
         }
     }
 

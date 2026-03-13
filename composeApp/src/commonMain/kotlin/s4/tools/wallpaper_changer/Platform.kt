@@ -1,5 +1,6 @@
 package s4.tools.wallpaper_changer
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.LifecycleOwner
 import s4.tools.wallpaper_changer.domain.local.os.FilesManager
@@ -29,6 +30,9 @@ expect fun getWallpaperNetwork(): WallpaperNetwork
 //expect fun getResourceDelegation(): ResourceDelegation
 
 expect fun File.toBitmap(): ImageBitmap?
+
+@Composable
+expect fun BackHandling(callback: (finish: () -> Unit) -> Unit)
 
 expect fun observeWorkManagerState(
     lifecycleOwner: LifecycleOwner,

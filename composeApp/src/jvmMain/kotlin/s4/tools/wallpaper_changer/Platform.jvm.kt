@@ -1,5 +1,6 @@
 package s4.tools.wallpaper_changer
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.lifecycle.LifecycleOwner
@@ -40,9 +41,10 @@ actual fun File.toBitmap(): ImageBitmap? {
     return Image.makeFromEncoded(bytes).toComposeImageBitmap()
 }
 
-//actual fun getResourceDelegation(): ResourceDelegation {
-//    TODO("Not yet implemented")
-//}
+@Composable
+actual fun BackHandling(callback: (finish: () -> Unit) -> Unit) {
+
+}
 
 actual fun getWallpaperChanger(): WallpaperChanger {
     return WallpaperChangerImpl()

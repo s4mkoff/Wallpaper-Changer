@@ -8,5 +8,6 @@ sealed class Screens(
     object ApiSettings: Screens("Api Settings")
     object WallpaperList: Screens("Wallpaper List")
     object Settings: Screens("Settings")
+    object History: Screens("History")
 
 }

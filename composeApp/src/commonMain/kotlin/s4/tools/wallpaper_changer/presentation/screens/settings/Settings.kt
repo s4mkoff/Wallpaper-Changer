@@ -1,8 +1,13 @@
 package s4.tools.wallpaper_changer.presentation.screens.settings
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -14,7 +19,9 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import s4.tools.wallpaper_changer.domain.models.AppSettings
 import s4.tools.wallpaper_changer.domain.models.actions.SettingsUIAction
 import s4.tools.wallpaper_changer.presentation.components.CheckBoxItem
@@ -45,39 +52,44 @@ fun Settings(
             )
         }
     ) { innerPadding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                MultiChoiceSegmentedButtonRow {
-                    themeModeOptions.onEachIndexed { index, (mode, label) ->
-                        SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = themeModeOptions.size),
-                            checked = mode == state.theme,
-                            label = {
-                                Text(
-                                    text = label
-                                )
-                            },
-                            onCheckedChange = {
-                                action(SettingsUIAction.ChangeNightMode(mode))
-                            }
-                        )
-                    }
-                }
-            }
-            item {
-                Button(
-                    onClick = {
-                        action(SettingsUIAction.ClearWallpapers())
-                    }
-                ) {
-                    Text(
-                        text = "Clear wallpapers"
+            MultiChoiceSegmentedButtonRow {
+                themeModeOptions.onEachIndexed { index, (mode, label) ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = themeModeOptions.size),
+                        checked = mode == state.theme,
+                        label = {
+                            Text(
+                                text = label
+                            )
+                        },
+                        onCheckedChange = {
+                            action(SettingsUIAction.ChangeNightMode(mode))
+                        }
                     )
                 }
             }
+            Button(
+                onClick = {
+                    action(SettingsUIAction.ClearWallpapers())
+                }
+            ) {
+                Text(
+                    text = "Clear wallpapers"
+                )
+            }
+            CheckBoxItem(
+                label = "Single wallpaper",
+                value = state.singleWallpaper,
+                onValueChange = { action(SettingsUIAction.ToggleSingleWallpaper()) }
+            )
         }
     }
 }

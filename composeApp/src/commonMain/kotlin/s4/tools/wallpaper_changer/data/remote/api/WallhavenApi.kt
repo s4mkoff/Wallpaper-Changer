@@ -70,9 +70,10 @@ class WallhavenApi() : WallpaperApi {
 
             println("Api call url: " + response.call.request.url.toString())
             val wallhavenResponse: WallhavenResponse = response.body()
+            println("WallhavenResponse: ${wallhavenResponse.toString()}")
             wallhavenResponse.data.map {
                 val extension = it.fileType.split('/').last()
-                WallpaperResponse(it.url, extension, it.path)
+                WallpaperResponse(it.id, it.url, extension, it.path)
             }
         } catch (e: Exception) {
             println("Error searching: ${e.message}")
