@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class WallpaperResponse(
     val id: String,
-    val url: String,
+    val thumbUrl: String,
     val extension: String,
-    val path: String
+    val path: String,
+    val apiName: String
 )

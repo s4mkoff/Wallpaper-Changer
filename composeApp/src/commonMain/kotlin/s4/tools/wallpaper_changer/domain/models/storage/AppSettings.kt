@@ -1,9 +1,6 @@
-package s4.tools.wallpaper_changer.domain.models
+package s4.tools.wallpaper_changer.domain.models.storage
 
 import kotlinx.serialization.Serializable
-import s4.tools.wallpaper_changer.domain.models.wallpaper.Wallpaper
-import s4.tools.wallpaper_changer.domain.models.wallpaper.WallpaperDetails
-import s4.tools.wallpaper_changer.domain.models.wallpaper.wallhaven.WallpaperData
 import s4.tools.wallpaper_changer.domain.remote.WallpaperResponse
 import s4.tools.wallpaper_changer.presentation.theme.Theme
 

@@ -10,7 +10,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import s4.tools.wallpaper_changer.data.local.AppManagers
 import s4.tools.wallpaper_changer.data.remote.api.WallhavenApi
-import s4.tools.wallpaper_changer.domain.models.AppSettings
+import s4.tools.wallpaper_changer.domain.models.storage.AppSettings
 import s4.tools.wallpaper_changer.domain.usecase.WallpaperUseCases
 
 const val SERVICE_ELEMENT = "-service"

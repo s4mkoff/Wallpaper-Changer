@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
-import s4.tools.wallpaper_changer.domain.models.CurrentWallpaperImage
+import s4.tools.wallpaper_changer.domain.models.LocalLoadingWallpaperImage
 import s4.tools.wallpaper_changer.domain.models.actions.HomeUIAction
 import wallpaper_changer.composeapp.generated.resources.Res
 import wallpaper_changer.composeapp.generated.resources.api_settings
@@ -19,7 +19,7 @@ import wallpaper_changer.composeapp.generated.resources.api_settings
 @Composable
 fun HomeScreen(
     currentApi: String,
-    currentWallpaperImage: CurrentWallpaperImage,
+    currentWallpaperImage: LocalLoadingWallpaperImage,
     action: (HomeUIAction) -> Unit
 ) {
     Scaffold(
@@ -58,18 +58,18 @@ fun HomeScreen(
         ) {
             item {
                 when (currentWallpaperImage) {
-                    is CurrentWallpaperImage.Error, is CurrentWallpaperImage.NotSet -> {
+                    is LocalLoadingWallpaperImage.Error, is LocalLoadingWallpaperImage.NotSet -> {
                         Text(
                             text = currentWallpaperImage.message
                         )
                     }
-                    is CurrentWallpaperImage.Loading -> {
+                    is LocalLoadingWallpaperImage.Loading -> {
                         CircularProgressIndicator(
                             modifier = Modifier
                                 .size(100.dp)
                         )
                     }
-                    is CurrentWallpaperImage.Success -> {
+                    is LocalLoadingWallpaperImage.Success -> {
                         Image(
                             modifier = Modifier
                                 .fillMaxWidth(),

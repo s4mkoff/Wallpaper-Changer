@@ -11,8 +11,13 @@ data class WallhavenResponse(
 @Serializable
 data class WallpaperData(
     val id: String,
-    val url: String,
+    val thumbs: Thumb,
     val path: String, // Пряме посилання на зображення
     @SerialName("file_type") val fileType: String,
     val resolution: String
+)
+
+@Serializable
+data class Thumb(
+    val original: String
 )

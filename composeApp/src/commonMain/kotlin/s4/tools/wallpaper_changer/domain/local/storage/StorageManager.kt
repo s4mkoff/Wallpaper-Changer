@@ -1,12 +1,17 @@
 package s4.tools.wallpaper_changer.domain.local.storage
 
-import s4.tools.wallpaper_changer.domain.models.AppSettings
-import s4.tools.wallpaper_changer.presentation.theme.Theme
-import s4.tools.wallpaper_changer.domain.models.wallpaper.WallpaperDetails
+import s4.tools.wallpaper_changer.domain.models.storage.WallpaperHistoryEntry
+import s4.tools.wallpaper_changer.domain.remote.WallpaperResponse
 
 interface StorageManager {
 
-    fun getSavedWallpaperDetails(): List<WallpaperDetails>
+    fun loadWallpaperHistory(): String?
+
+    fun saveWallpaperHistory(history: String)
+
+    fun addEntryToWallpaperHistory(wallpaperResponse: WallpaperResponse)
+
+    fun removeEntryFromWallpaperHistory(wallpaperHistoryEntry: WallpaperHistoryEntry)
 
     fun getApiRequest(): String
 

@@ -10,9 +10,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
-import s4.tools.wallpaper_changer.data.LinkBuilder
+import s4.tools.wallpaper_changer.data.utils.LinkBuilder
 import s4.tools.wallpaper_changer.data.local.AppManagers
+import s4.tools.wallpaper_changer.data.utils.JsonHelper
 import s4.tools.wallpaper_changer.domain.local.storage.StorageManager
 import s4.tools.wallpaper_changer.domain.models.wallpaper.WallpaperDetails
 import s4.tools.wallpaper_changer.domain.models.wallpaper.wallhaven.WallhavenResponse
@@ -40,8 +42,7 @@ class WallhavenApi() : WallpaperApi {
     }
 
     override fun saveApiSettings() {
-        val json = Json { prettyPrint = true }
-        val settings = json.encodeToString(_settings.value)
+        val settings = JsonHelper.fromClassToJsonString(_settings.value, WallhavenSettings.serializer())
         AppManagers.storageManager.saveApiSettings(
             apiName = apiName,
             apiSettings = settings
@@ -50,8 +51,7 @@ class WallhavenApi() : WallpaperApi {
 
     override fun loadApiSettings() {
         val jsonString = AppManagers.storageManager.loadApiSettings(apiName) ?: return
-        val loadedSettings = Json.Default.decodeFromString<WallhavenSettings>(jsonString)
-        _settings.update { loadedSettings }
+        _settings.update { JsonHelper.fromJsonStringToClass(jsonString, WallhavenSettings.serializer()) }
     }
 
     override suspend fun searchWallpapers(url: String): List<WallpaperResponse> {
@@ -70,10 +70,10 @@ class WallhavenApi() : WallpaperApi {
 
             println("Api call url: " + response.call.request.url.toString())
             val wallhavenResponse: WallhavenResponse = response.body()
-            println("WallhavenResponse: ${wallhavenResponse.toString()}")
+            println("WallhavenResponse: $wallhavenResponse")
             wallhavenResponse.data.map {
                 val extension = it.fileType.split('/').last()
-                WallpaperResponse(it.id, it.url, extension, it.path)
+                WallpaperResponse(id = it.id, thumbUrl = it.thumbs.original, extension = extension, path = it.path, apiName = apiName)
             }
         } catch (e: Exception) {
             println("Error searching: ${e.message}")

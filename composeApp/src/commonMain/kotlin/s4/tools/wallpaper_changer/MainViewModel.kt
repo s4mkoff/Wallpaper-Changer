@@ -14,12 +14,13 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import s4.tools.wallpaper_changer.data.remote.api.WallhavenApi
 import s4.tools.wallpaper_changer.data.local.AppManagers
-import s4.tools.wallpaper_changer.domain.models.AppSettings
-import s4.tools.wallpaper_changer.domain.models.CurrentWallpaperImage
+import s4.tools.wallpaper_changer.domain.models.storage.AppSettings
+import s4.tools.wallpaper_changer.domain.models.LocalLoadingWallpaperImage
 import s4.tools.wallpaper_changer.domain.models.actions.HistoryUIAction
 import s4.tools.wallpaper_changer.domain.models.actions.HomeUIAction
 import s4.tools.wallpaper_changer.domain.models.actions.SettingsUIAction
 import s4.tools.wallpaper_changer.domain.models.actions.apiSettings.WallhavenUiAction
+import s4.tools.wallpaper_changer.domain.models.storage.WallpaperHistoryEntry
 import s4.tools.wallpaper_changer.domain.models.wallpaper.Wallpaper
 import s4.tools.wallpaper_changer.domain.remote.WallpaperApi
 import s4.tools.wallpaper_changer.domain.remote.WallpaperResponse
@@ -31,8 +32,8 @@ class MainViewModel : ViewModel() {
     private var _snackbarMessage: MutableStateFlow<String> = MutableStateFlow("")
     val snackbarMessage: StateFlow<String> = _snackbarMessage.asStateFlow()
 
-    var currentWallpaperImage: MutableStateFlow<CurrentWallpaperImage> =
-        MutableStateFlow(CurrentWallpaperImage.Loading())
+    var currentWallpaperImage: MutableStateFlow<LocalLoadingWallpaperImage> =
+        MutableStateFlow(LocalLoadingWallpaperImage.Loading())
 
     var loadingState by mutableStateOf(false)
 
@@ -44,8 +45,8 @@ class MainViewModel : ViewModel() {
 
     var currentScreen: Screens by mutableStateOf(Screens.Home)
 
-    private var _historyWallpaperList: MutableStateFlow<List<Wallpaper>> = MutableStateFlow(emptyList())
-    val historyWallpaperList: StateFlow<List<Wallpaper>> = _historyWallpaperList.asStateFlow()
+    private var _historyWallpaperList: MutableStateFlow<List<Pair<WallpaperHistoryEntry, Wallpaper?>>> = MutableStateFlow(emptyList())
+    val historyWallpaperList: StateFlow<List<Pair<WallpaperHistoryEntry, Wallpaper?>>> = _historyWallpaperList.asStateFlow()
 
     var currentApi: WallpaperApi = WallhavenApi()
 
@@ -71,7 +72,13 @@ class MainViewModel : ViewModel() {
 
     fun loadHistoryWallpapers() {
         viewModelScope.launch {
-            _historyWallpaperList.update { useCase.loadWallpapersHistory() }
+            _historyWallpaperList.update {
+                val history = useCase.loadWallpapersHistory()
+                history.forEach {
+                    println("Loading history id: ${it.first.id}")
+                }
+                history
+            }
         }
     }
 
@@ -137,7 +144,7 @@ class MainViewModel : ViewModel() {
     fun wallpaperFromListClick(wallpaperResponse: WallpaperResponse) {
         viewModelScope.launch {
             loadingState = true
-            currentWallpaperImage.update { CurrentWallpaperImage.Loading() }
+            currentWallpaperImage.update { LocalLoadingWallpaperImage.Loading() }
             useCase.changeWallpaperFromApi(wallpaperResponse, appSettings.value.singleWallpaper)
             _snackbarMessage.update { "Finished" }
             loadCurrentWallpaperImage()
@@ -157,7 +164,7 @@ class MainViewModel : ViewModel() {
 
             is HomeUIAction.RandomWallpaper -> {
                 viewModelScope.launch(Dispatchers.IO) {
-                    currentWallpaperImage.update { CurrentWallpaperImage.Loading() }
+                    currentWallpaperImage.update { LocalLoadingWallpaperImage.Loading() }
                     useCase.randomWallpaper(appSettings.value.singleWallpaper)
                     _snackbarMessage.update { "Finished" }
                     loadCurrentWallpaperImage()
@@ -177,7 +184,26 @@ class MainViewModel : ViewModel() {
                     useCase.changeWallpaperFromStorage(action.wallpaper)
                 }
             }
-            is HistoryUIAction.RemoveSelectedWallpaper -> TODO()
+            is HistoryUIAction.RemoveSelectedWallpaper -> {
+                viewModelScope.launch {
+                    useCase.removeWallpaperFromHistory(action.wallpaperHistoryEntry)
+                    loadHistoryWallpapers()
+                }
+            }
+            is HistoryUIAction.DownloadAndChangeSelectedWallpaper -> {
+                viewModelScope.launch {
+                    useCase.changeWallpaperFromApi(
+                        wallpaperResponse = WallpaperResponse(
+                            id = action.wallpaperHistoryEntry.id,
+                            thumbUrl = action.wallpaperHistoryEntry.thumbUrl,
+                            extension = action.wallpaperHistoryEntry.pathUrl.split(".").last(),
+                            path = action.wallpaperHistoryEntry.pathUrl,
+                            apiName = action.wallpaperHistoryEntry.apiName
+                        ),
+                        singleWallpaper = appSettings.value.singleWallpaper
+                    )
+                }
+            }
         }
     }
 

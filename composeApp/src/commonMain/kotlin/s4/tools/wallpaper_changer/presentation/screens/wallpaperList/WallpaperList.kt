@@ -1,6 +1,7 @@
 package s4.tools.wallpaper_changer.presentation.screens.wallpaperList
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import coil3.compose.AsyncImage
@@ -66,7 +68,7 @@ fun WallpaperList(
                             text = "Error loading image"
                         )
                     },
-                    model = it.path,
+                    model = it.thumbUrl,
                     contentDescription = null
                 )
             }

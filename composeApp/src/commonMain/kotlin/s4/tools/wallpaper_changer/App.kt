@@ -8,8 +8,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import org.jetbrains.compose.resources.painterResource
-import s4.tools.wallpaper_changer.data.local.AppManagers
-import s4.tools.wallpaper_changer.domain.models.AppSettings
 import s4.tools.wallpaper_changer.data.remote.api.WallhavenApi
 import s4.tools.wallpaper_changer.navigation.Screens
 import s4.tools.wallpaper_changer.presentation.screens.wallpaperList.WallpaperList

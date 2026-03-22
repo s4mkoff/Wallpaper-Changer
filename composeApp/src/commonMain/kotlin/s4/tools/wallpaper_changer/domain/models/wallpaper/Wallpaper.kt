@@ -7,7 +7,7 @@ import kotlin.collections.component2
 import kotlin.collections.component3
 
 class Wallpaper(
-    val file: File
+    val file: File,
 ) {
 
 

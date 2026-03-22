@@ -1,4 +1,4 @@
-package s4.tools.wallpaper_changer.data
+package s4.tools.wallpaper_changer.data.utils
 
 class LinkBuilder(
     domain: String
