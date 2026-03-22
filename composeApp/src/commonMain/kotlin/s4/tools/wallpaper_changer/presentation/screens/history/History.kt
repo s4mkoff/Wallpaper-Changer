@@ -105,17 +105,15 @@ fun History(
                         } else {
                             AsyncImage(
                                 modifier = Modifier
-                                    .clickable(
-                                        onClick = {
-                                            wallpaperHistoryEntryHolded = wallpaperEntry
-                                        }
-                                    )
                                     .pointerInput(
                                         true
                                     ) {
                                         detectTapGestures(
+                                            onTap = {
+                                                action(HistoryUIAction.DownloadAndChangeSelectedWallpaper(wallpaperEntry))
+                                            },
                                             onLongPress = {
-                                                action(HistoryUIAction.RemoveSelectedWallpaper(wallpaperEntry))
+                                                wallpaperHistoryEntryHolded = wallpaperEntry
                                             }
                                         )
                                     },

@@ -31,10 +31,18 @@ class WallpaperUseCases(
         return api.searchWallpapers(link)
     }
 
+    suspend fun getMoreWallpapers(currentPage: Int): List<WallpaperResponse> {
+        val link = api.buildLinkWithPages(currentPage+1)
+        return api.searchWallpapers(link)
+    }
+
     suspend fun changeWallpaperFromApi(wallpaperResponse: WallpaperResponse, singleWallpaper: Boolean) {
+        println("Change wallpaper from api")
         val wallpaperFile = findFileOrCreate(wallpaperResponse)
         if (singleWallpaper) clearWallpapers()
+        println("Downloading wallpaper")
         AppManagers.wallpaperNetwork.downloadWallpaper(wallpaperResponse.path, wallpaperFile)
+        println("Changing wallpaper")
         AppManagers.wallpaperChanger.changeWallpaper(wallpaperFile)
         AppManagers.storageManager.addEntryToWallpaperHistory(wallpaperResponse)
         api.saveApiSettings()
@@ -72,9 +80,7 @@ class WallpaperUseCases(
         return history.map { historyEntry ->
             val localWallpaper = localWallpapers.find { it.id==historyEntry.id && it.apiName==historyEntry.apiName }
             localWallpaper?.let { historyEntry to it } ?: (historyEntry to null)
-        }.sortedByDescending {
-            it.second?.time
-        }
+        }.reversed()
     }
 
     suspend fun clearWallpapers() {

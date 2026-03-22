@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LoadingIndicatorDefaults
 import androidx.compose.material3.Text
@@ -27,13 +28,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
+import s4.tools.wallpaper_changer.domain.models.actions.WallpaperListUIAction
 import s4.tools.wallpaper_changer.domain.remote.WallpaperResponse
 
 @Composable
 fun WallpaperList(
     wallpapers: List<WallpaperResponse>?,
-    onWallpaperClick: (WallpaperResponse) -> Unit
+    action: (WallpaperListUIAction) -> Unit
 ) {
+    var currentPage by remember { mutableIntStateOf(1) }
     wallpapers?.let { nonNullList ->
         LazyVerticalStaggeredGrid(
             modifier = Modifier
@@ -53,7 +56,7 @@ fun WallpaperList(
                         )
                         .clickable(
                             onClick = {
-                                onWallpaperClick(it)
+                                action(WallpaperListUIAction.ChangeWallpaperFromList(it))
                             }
                         ),
                     onSuccess = {
@@ -71,6 +74,17 @@ fun WallpaperList(
                     model = it.thumbUrl,
                     contentDescription = null
                 )
+            }
+            item {
+                Button(
+                    onClick = {
+                        action(WallpaperListUIAction.LoadMoreWallpapers(currentPage))
+                    }
+                ) {
+                    Text(
+                        text = "More"
+                    )
+                }
             }
         }
     } ?: Box(

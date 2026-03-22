@@ -151,8 +151,8 @@ fun App() {
                         val wallpaperList by viewModel.listOfWallpapers.collectAsState()
                         WallpaperList(
                             wallpapers = wallpaperList,
-                            onWallpaperClick = { wallpaperResponse ->
-                                viewModel.wallpaperFromListClick(wallpaperResponse)
+                            action = { action ->
+                                viewModel.wallpaperListAction(action)
                             }
                         )
                     }

@@ -1,5 +1,6 @@
 package s4.tools.wallpaper_changer.domain.remote
 
+import s4.tools.wallpaper_changer.domain.models.wallpaper.Wallpaper
 import s4.tools.wallpaper_changer.domain.models.wallpaper.WallpaperDetails
 
 interface WallpaperApi {
@@ -14,5 +15,7 @@ interface WallpaperApi {
     fun loadApiSettings()
 
     suspend fun searchWallpapers(url: String): List<WallpaperResponse>
+
+    suspend fun buildLinkWithPages(page: Int): String
 
 }

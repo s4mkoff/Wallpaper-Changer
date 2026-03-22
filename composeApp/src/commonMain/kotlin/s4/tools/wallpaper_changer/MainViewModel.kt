@@ -19,6 +19,7 @@ import s4.tools.wallpaper_changer.domain.models.LocalLoadingWallpaperImage
 import s4.tools.wallpaper_changer.domain.models.actions.HistoryUIAction
 import s4.tools.wallpaper_changer.domain.models.actions.HomeUIAction
 import s4.tools.wallpaper_changer.domain.models.actions.SettingsUIAction
+import s4.tools.wallpaper_changer.domain.models.actions.WallpaperListUIAction
 import s4.tools.wallpaper_changer.domain.models.actions.apiSettings.WallhavenUiAction
 import s4.tools.wallpaper_changer.domain.models.storage.WallpaperHistoryEntry
 import s4.tools.wallpaper_changer.domain.models.wallpaper.Wallpaper
@@ -202,6 +203,32 @@ class MainViewModel : ViewModel() {
                         ),
                         singleWallpaper = appSettings.value.singleWallpaper
                     )
+                }
+            }
+        }
+    }
+
+    fun wallpaperListAction(action: WallpaperListUIAction) {
+        when (action) {
+            is WallpaperListUIAction.ChangeWallpaperFromList -> {
+                viewModelScope.launch {
+                    loadingState = true
+                    currentWallpaperImage.update { LocalLoadingWallpaperImage.Loading() }
+                    useCase.changeWallpaperFromApi(action.wallpaper, appSettings.value.singleWallpaper)
+                    _snackbarMessage.update { "Finished" }
+                    loadCurrentWallpaperImage()
+                    currentScreen = Screens.Home
+                    loadingState = false
+                }
+            }
+            is WallpaperListUIAction.LoadMoreWallpapers -> {
+                viewModelScope.launch {
+                    val additionalWallpapers = useCase.getMoreWallpapers(action.currentPage)
+                    _listOfWallpapers.update {
+                        listOfWallpapers.value?.let {
+                            it.toMutableList() + additionalWallpapers
+                        } ?: additionalWallpapers
+                    }
                 }
             }
         }

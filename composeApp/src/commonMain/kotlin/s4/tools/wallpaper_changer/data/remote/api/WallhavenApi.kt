@@ -96,4 +96,17 @@ class WallhavenApi() : WallpaperApi {
         }.build()
     }
 
+    override suspend fun buildLinkWithPages(page: Int): String {
+        return LinkBuilder("wallhaven.cc/api/v1/search").apply {
+            append("page", "$page")
+            append("categories", settings.value.categories.toValue())
+            append("purity", settings.value.purity.toValue())
+            append("atleast", settings.value.resolution)
+            append("sorting", settings.value.sorting.value)
+            append("ratios", settings.value.ratios.value)
+            if (settings.value.color.isNotEmpty()) append("colors", settings.value.color)
+            if (settings.value.token.isNotEmpty()) append("apikey", settings.value.token)
+        }.build()
+    }
+
 }

@@ -44,13 +44,11 @@ fun LocalWallpaperLoading(
         is LocalLoadingWallpaperImage.Success -> {
             Image(
                 modifier = Modifier
-                    .clickable(
-                        onClick = onClick
-                    )
                     .pointerInput(
                         true
                     ) {
                         detectTapGestures(
+                            onTap = { onClick() },
                             onLongPress = { onHold() }
                         )
                     }
